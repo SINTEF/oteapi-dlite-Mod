@@ -6,7 +6,7 @@ from pathlib import Path
 from setuptools import find_packages, setup
 
 TOP_DIR = Path(__file__).resolve().parent
-PACKAGE_NAME = "oteapi_dlite_mod"
+PACKAGE_NAME = "oteapi_dlite"
 
 with open(
     TOP_DIR / PACKAGE_NAME / "__init__.py", "r", encoding="utf8"
