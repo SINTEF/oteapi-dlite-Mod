@@ -5,3 +5,6 @@ Pillow>=9.0.1,<11
 # psycopg2-binary!=2.9.6
 # pydantic>=2.4.2,<3  # Indirect requirement
 tripper>=0.1.2
+galvani>=0.2.1
+pandas>=1.5.3
+rdflib>=7.0.0

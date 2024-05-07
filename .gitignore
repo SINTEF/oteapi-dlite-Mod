@@ -17,3 +17,8 @@ dist/
 
 # Documentation
 site/
+
+# Environment
+env/
+
+

@@ -8,13 +8,16 @@ from oteapi.datacache import DataCache
 from oteapi.models import AttrDict, DataCacheConfig, FunctionConfig
 from pydantic import Field
 from pydantic.dataclasses import dataclass
+import requests
+
 
 from oteapi_dlite.models import DLiteSessionUpdate
-from oteapi_dlite.utils import get_collection, get_driver, update_collection
+from oteapi_dlite.utils import get_collection, get_driver, update_collection, get_meta, get_instance
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing import Any
 
+import dlite
 
 class DLiteStorageConfig(AttrDict):
     """Configuration for a generic DLite storage filter.
@@ -152,6 +155,37 @@ class DLiteGenerateStrategy:
         config = self.generate_config.configuration
         cacheconfig = config.datacache_config
 
+
+        coll = get_collection(collection_id=config.collection_id)
+
+
+        if config.datamodel:
+            req = requests.get(
+                config.datamodel,
+                allow_redirects=True,
+                timeout=(3, 27),
+            )
+
+            config_name = config.datamodel.split("/").pop()
+
+            with open(f"/entities/{config_name}", 'wb') as file:
+                file.write(req.content)
+            dlite.storage_path.append(f"/entities")
+            meta = get_meta(config.datamodel)
+            print(meta)
+
+            # first_key = list(coll[config.label])[0]
+            # print(first_key)
+            # inst = meta(dims=[len(first_key)])
+            
+            # coll = get_collection(
+            #     collection_id=config.collection_id
+            # )
+
+            # coll.add(f"parsed-{config.label}", inst)
+        
+
+
         driver = (
             config.driver
             if config.driver
@@ -159,14 +193,15 @@ class DLiteGenerateStrategy:
                 mediaType=config.functionType,
             )
         )
-
+        
         coll = get_collection(collection_id=config.collection_id)
         if config.datamodel:
             instances = coll.get_instances(
                 metaid=config.datamodel,
                 property_mappings=True,
-                allow_incomplete=config.allow_incomplete,
+                allow_incomplete=True,
             )
+
             inst = next(instances)
         elif config.label:
             inst = coll[config.label]
