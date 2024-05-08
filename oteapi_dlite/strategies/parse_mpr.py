@@ -1,13 +1,14 @@
 """Strategy that parses resource id and return all associated download links."""
 
 import sys
+from io import BytesIO
+from pathlib import Path
 from typing import Annotated, Optional
 
 import dlite
 import pandas as pd
 import requests
 from galvani import BioLogic as BL
-from oteapi.datacache import DataCache
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
 from pydantic import Field
 from pydantic.dataclasses import dataclass
@@ -50,6 +51,12 @@ class DLiteMPRParseConfig(AttrDict):
         None,
         description=ResourceConfig.model_fields["mediaType"].description,
     )
+    storage_path: Annotated[
+        Optional[str],
+        Field(
+            description="Path to metadata storage",
+        ),
+    ] = None
     collection_id: Annotated[
         Optional[str], Field(description="A reference to a DLite collection.")
     ] = None
@@ -113,61 +120,65 @@ class DLiteMPRStrategy:
         return DLiteSessionUpdate(collection_id=collection_id)
 
     def get(self) -> DLiteMPRSessionUpdate:
+        config = self.parse_config.configuration
+        entity_uri = self.parse_config.entity
 
-        config = self.parse_config
-        # try:
-        #     # Update dlite storage paths if provided
-        #     if config.storage_path:
-        #         for storage_path in config.storage_path.split("|"):
-        #             dlite.storage_path.append(storage_path)
-        # except Exception as e:
-        #     print(f"Error during update of DLite storage path: {e}")
-        #     raise RuntimeError("Failed to update DLite storage path.") from e
+        try:
+            # Update dlite storage paths if provided
+            if config.storage_path:
+                for storage_path in config.storage_path.split("|"):
+                    print(f"Adding storage path: {storage_path}")
+                    dlite.storage_path.append(storage_path)
+        except Exception as e:
+            print(f"Error during update of DLite storage path: {e}")
+            raise RuntimeError("Failed to update DLite storage path.") from e
 
         req = requests.get(
-            str(config.configuration.downloadUrl),
+            str(config.downloadUrl),
             allow_redirects=True,
             timeout=(3, 27),
         )
-        cache = DataCache()
-        key = cache.add(req.content)
-
-        with cache.getfile(key, suffix=".mpr") as filename:
-            mpr_file = BL.MPRfile(str(filename))
+        print("YAAAS")
+        buffer = BytesIO(req.content)
+        buffer.seek(0)
+        mpr_file = BL.MPRfile(buffer)
         raw_data = pd.DataFrame(mpr_file.data)
 
-        if config.entity:
+        try:
+            meta = get_meta(str(entity_uri))
+        except Exception:
+            # Retrieve and store entity locally
             req = requests.get(
-                str(config.entity),
+                str(entity_uri),
                 allow_redirects=True,
                 timeout=(3, 27),
             )
-
-            config_name = config.entity.path.split("/").pop()
-
-            with open(f"/entities/{config_name}", "wb") as file:
-                file.write(req.content)
-            dlite.storage_path.append(f"/entities")
-
-            meta = get_meta(config.entity)
-            inst = meta(dims=[len(raw_data)], id=config.configuration.id)
-
-            relations = config.configuration.mpr_config
-
-            for relation_name, table_name in relations.items():
-                print(relation_name, table_name)
-                inst[relation_name] = raw_data[table_name]
-
-            coll = get_collection(
-                collection_id=config.configuration.collection_id
+            config_name = entity_uri.path.split("/").pop()
+            Path(f"/entities/{config_name}").with_suffix(".json").write_bytes(
+                req.content
             )
 
-            coll.add(config.configuration.label, inst)
-            update_collection(coll)
+            meta = get_meta(str(entity_uri))
+
+        # Create DLite instance
+        inst = meta(dims=[len(raw_data)], id=config.id)
+
+        relations = config.mpr_config
+
+        print("In MPR parser")
+
+        for relation_name, table_name in relations.items():
+            print(relation_name, table_name)
+            inst[relation_name] = raw_data[table_name]
+
+        # Retrieve collection and add the entity instance
+        coll = get_collection(collection_id=config.collection_id)
+        coll.add(config.label, inst)
+        update_collection(coll)
 
         return DLiteMPRSessionUpdate(
             collection_id=coll.uuid,
             inst_uuid=inst.uuid,
-            label=config.configuration.label,
+            label=config.label,
             mpr_data=raw_data.to_dict(),
         )

@@ -2,8 +2,10 @@
 
 # pylint: disable=unused-argument,invalid-name
 import tempfile
-from typing import TYPE_CHECKING, Annotated, Optional
+from pathlib import Path
+from typing import Annotated, Optional
 
+import dlite
 import requests
 from oteapi.datacache import DataCache
 from oteapi.models import AttrDict, DataCacheConfig, FunctionConfig
@@ -14,15 +16,9 @@ from oteapi_dlite.models import DLiteSessionUpdate
 from oteapi_dlite.utils import (
     get_collection,
     get_driver,
-    get_instance,
     get_meta,
     update_collection,
 )
-
-if TYPE_CHECKING:  # pragma: no cover
-    from typing import Any
-
-import dlite
 
 
 class DLiteStorageConfig(AttrDict):
@@ -140,12 +136,12 @@ class DLiteGenerateStrategy:
 
     """
 
-    generate_config: DLiteGenerateConfig
+    function_config: DLiteGenerateConfig
 
     def initialize(self) -> DLiteSessionUpdate:
         """Initialize."""
         collection_id = (
-            self.generate_config.configuration.collection_id
+            self.function_config.configuration.collection_id
             or get_collection().uuid
         )
         return DLiteSessionUpdate(collection_id=collection_id)
@@ -158,35 +154,31 @@ class DLiteGenerateStrategy:
         Returns:
             SessionUpdate instance.
         """
-        config = self.generate_config.configuration
+        config = self.function_config.configuration
         cacheconfig = config.datacache_config
 
         coll = get_collection(collection_id=config.collection_id)
 
         if config.datamodel:
-            req = requests.get(
-                config.datamodel,
-                allow_redirects=True,
-                timeout=(3, 27),
-            )
+            try:
+                meta = get_meta(config.datamodel)
+            except Exception:
+                # Retrieve data model
+                req = requests.get(
+                    config.datamodel,
+                    allow_redirects=True,
+                    timeout=(3, 27),
+                )
 
-            config_name = config.datamodel.split("/").pop()
+                config_name = config.datamodel.split("/").pop()
 
-            with open(f"/entities/{config_name}", "wb") as file:
-                file.write(req.content)
-            dlite.storage_path.append(f"/entities")
-            meta = get_meta(config.datamodel)
+                Path(f"/entities/{config_name}").with_suffix(
+                    ".json"
+                ).write_bytes(req.content)
+                dlite.storage_path.append("/entities")
+                meta = get_meta(config.datamodel)
+
             print(meta)
-
-            # first_key = list(coll[config.label])[0]
-            # print(first_key)
-            # inst = meta(dims=[len(first_key)])
-
-            # coll = get_collection(
-            #     collection_id=config.collection_id
-            # )
-
-            # coll.add(f"parsed-{config.label}", inst)
 
         driver = (
             config.driver
@@ -196,7 +188,6 @@ class DLiteGenerateStrategy:
             )
         )
 
-        coll = get_collection(collection_id=config.collection_id)
         if config.datamodel:
             instances = coll.get_instances(
                 metaid=config.datamodel,

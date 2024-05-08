@@ -149,9 +149,7 @@ class DLiteJsonStrategy:
             inst[name] = columns[name]
 
         # Add collection and add the entity instance
-        coll = get_collection(
-            collection_id=self.parse_config.configuration.collection_id
-        )
+        coll = get_collection(collection_id=config.collection_id)
         coll.add(config.label, inst)
         update_collection(coll)
 
