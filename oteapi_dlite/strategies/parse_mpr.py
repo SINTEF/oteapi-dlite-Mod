@@ -1,15 +1,22 @@
 """Strategy that parses resource id and return all associated download links."""
 
 import sys
-from io import BytesIO
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 
 import dlite
 import pandas as pd
 import requests
 from galvani import BioLogic as BL
-from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
+from oteapi.datacache import DataCache
+from oteapi.models import (
+    AttrDict,
+    DataCacheConfig,
+    HostlessAnyUrl,
+    ParserConfig,
+    ResourceConfig,
+)
+from oteapi.plugins import create_strategy
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
@@ -43,10 +50,6 @@ class DLiteMPRParseConfig(AttrDict):
         None,
         description=ResourceConfig.model_fields["downloadUrl"].description,
     )
-    # entity: Optional[str] = Field(
-    #     None,
-    #     description="Name of the data model entity",
-    # )
     mediaType: Optional[str] = Field(
         None,
         description=ResourceConfig.model_fields["mediaType"].description,
@@ -64,6 +67,13 @@ class DLiteMPRParseConfig(AttrDict):
     mpr_config: AttrDict = Field(
         AttrDict(),
         description="A list of column names.",
+    )
+    datacache_config: Optional[DataCacheConfig] = Field(
+        None,
+        description=(
+            "Configurations for the data cache for storing the downloaded file "
+            "content."
+        ),
     )
 
 
@@ -91,12 +101,12 @@ class DLiteMPRSessionUpdate(DLiteSessionUpdate):
             description="Label of the new instance in the collection.",
         ),
     ]
-    # mpr_data: Annotated[
-    #     AttrDict,
-    #     Field(
-    #         description="Label of the new instance in the collection.",
-    #     ),
-    # ]
+    mpr_data: Annotated[
+        dict[str, Any],
+        Field(
+            description="Label of the new instance in the collection.",
+        ),
+    ]
 
 
 @dataclass
@@ -120,6 +130,8 @@ class DLiteMPRStrategy:
         return DLiteSessionUpdate(collection_id=collection_id)
 
     def get(self) -> DLiteMPRSessionUpdate:
+        print("In MPR parser")
+
         config = self.parse_config.configuration
         entity_uri = self.parse_config.entity
 
@@ -133,45 +145,43 @@ class DLiteMPRStrategy:
             print(f"Error during update of DLite storage path: {e}")
             raise RuntimeError("Failed to update DLite storage path.") from e
 
-        req = requests.get(
-            str(config.downloadUrl),
-            allow_redirects=True,
-            timeout=(3, 27),
-        )
-        print("YAAAS")
-        buffer = BytesIO(req.content)
-        buffer.seek(0)
-        mpr_file = BL.MPRfile(buffer)
-        raw_data = pd.DataFrame(mpr_file.data)
+        # Download MPR file through a download strategy
+        downloader = create_strategy("download", config.model_dump())
+        downloader_output = downloader.get()
+        cache = DataCache(config.datacache_config)
 
+        # Load MPR file
+        with cache.getfile(downloader_output["key"], suffix=".mpr") as filepath:
+            mpr_file = BL.MPRfile(str(filepath))
+
+        mpr_data = pd.DataFrame(mpr_file.data)
+
+        # Create DLite instance
         try:
             meta = get_meta(str(entity_uri))
         except Exception:
             # Retrieve and store entity locally
-            req = requests.get(
+            response = requests.get(
                 str(entity_uri),
                 allow_redirects=True,
                 timeout=(3, 27),
             )
             config_name = entity_uri.path.split("/").pop()
             Path(f"/entities/{config_name}").with_suffix(".json").write_bytes(
-                req.content
+                response.content
             )
 
             meta = get_meta(str(entity_uri))
 
-        # Create DLite instance
-        inst = meta(dims=[len(raw_data)], id=config.id)
+        inst = meta(dims=[len(mpr_data)], id=config.id)
 
         relations = config.mpr_config
 
-        print("In MPR parser")
-
         for relation_name, table_name in relations.items():
             print(relation_name, table_name)
-            inst[relation_name] = raw_data[table_name]
+            inst[relation_name] = mpr_data[table_name]
 
-        # Retrieve collection and add the entity instance
+        # Add the entity instance to the session-specific DLite collection
         coll = get_collection(collection_id=config.collection_id)
         coll.add(config.label, inst)
         update_collection(coll)
@@ -180,5 +190,5 @@ class DLiteMPRStrategy:
             collection_id=coll.uuid,
             inst_uuid=inst.uuid,
             label=config.label,
-            mpr_data=raw_data.to_dict(),
+            mpr_data=mpr_data.to_dict(),
         )
