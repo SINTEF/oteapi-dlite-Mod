@@ -1,10 +1,10 @@
 DLite-Python>=0.4.5,<1.0
+galvani>=0.2.1
 numpy>=1.21,<2
 oteapi-core @ git+https://github.com/EMMC-ASBL/oteapi-core@master
+pandas>=1.5.3
 Pillow>=9.0.1,<11
+rdflib>=7.0.0
 # psycopg2-binary!=2.9.6
 # pydantic>=2.4.2,<3  # Indirect requirement
 tripper>=0.1.2
-galvani>=0.2.1
-pandas>=1.5.3
-rdflib>=7.0.0

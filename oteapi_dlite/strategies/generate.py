@@ -4,20 +4,26 @@
 import tempfile
 from typing import TYPE_CHECKING, Annotated, Optional
 
+import requests
 from oteapi.datacache import DataCache
 from oteapi.models import AttrDict, DataCacheConfig, FunctionConfig
 from pydantic import Field
 from pydantic.dataclasses import dataclass
-import requests
-
 
 from oteapi_dlite.models import DLiteSessionUpdate
-from oteapi_dlite.utils import get_collection, get_driver, update_collection, get_meta, get_instance
+from oteapi_dlite.utils import (
+    get_collection,
+    get_driver,
+    get_instance,
+    get_meta,
+    update_collection,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from typing import Any
 
 import dlite
+
 
 class DLiteStorageConfig(AttrDict):
     """Configuration for a generic DLite storage filter.
@@ -155,9 +161,7 @@ class DLiteGenerateStrategy:
         config = self.generate_config.configuration
         cacheconfig = config.datacache_config
 
-
         coll = get_collection(collection_id=config.collection_id)
-
 
         if config.datamodel:
             req = requests.get(
@@ -168,7 +172,7 @@ class DLiteGenerateStrategy:
 
             config_name = config.datamodel.split("/").pop()
 
-            with open(f"/entities/{config_name}", 'wb') as file:
+            with open(f"/entities/{config_name}", "wb") as file:
                 file.write(req.content)
             dlite.storage_path.append(f"/entities")
             meta = get_meta(config.datamodel)
@@ -177,14 +181,12 @@ class DLiteGenerateStrategy:
             # first_key = list(coll[config.label])[0]
             # print(first_key)
             # inst = meta(dims=[len(first_key)])
-            
+
             # coll = get_collection(
             #     collection_id=config.collection_id
             # )
 
             # coll.add(f"parsed-{config.label}", inst)
-        
-
 
         driver = (
             config.driver
@@ -193,7 +195,7 @@ class DLiteGenerateStrategy:
                 mediaType=config.functionType,
             )
         )
-        
+
         coll = get_collection(collection_id=config.collection_id)
         if config.datamodel:
             instances = coll.get_instances(

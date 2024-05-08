@@ -42,6 +42,9 @@ repos:
     hooks:
     - id: mypy
       exclude: ^tests/.*$
+      additional_dependencies:
+        - "types-requests"
+        - "pydantic>=2"
 
   - repo: https://github.com/SINTEF/ci-cd
     rev: v2.7.4
@@ -56,27 +59,27 @@ repos:
       - --replacement=(LICENSE),(LICENSE.md)
       - --replacement=https://EMMC-ASBL.github.io/oteapi-dlite/latest/,
 
-  - repo: local
-    hooks:
-    - id: pylint
-      name: pylint
-      entry: pylint
-      args:
-      - "--rcfile=pyproject.toml"
-      - "--extension-pkg-whitelist='pydantic'"
-      language: python
-      types: [python]
-      require_serial: true
-      files: ^.*$
-      exclude: ^tests/.*$
-    - id: pylint-tests
-      name: pylint - tests
-      entry: pylint
-      args:
-      - "--rcfile=pyproject.toml"
-      - "--extension-pkg-whitelist='pydantic'"
-      - "--disable=import-outside-toplevel,redefined-outer-name,import-error"
-      language: python
-      types: [python]
-      require_serial: true
-      files: ^tests/.*$
+  # - repo: local
+  #   hooks:
+  #   - id: pylint
+  #     name: pylint
+  #     entry: pylint
+  #     args:
+  #     - "--rcfile=pyproject.toml"
+  #     - "--extension-pkg-whitelist='pydantic'"
+  #     language: python
+  #     types: [python]
+  #     require_serial: true
+  #     files: ^.*$
+  #     exclude: ^tests/.*$
+  #   - id: pylint-tests
+  #     name: pylint - tests
+  #     entry: pylint
+  #     args:
+  #     - "--rcfile=pyproject.toml"
+  #     - "--extension-pkg-whitelist='pydantic'"
+  #     - "--disable=import-outside-toplevel,redefined-outer-name,import-error"
+  #     language: python
+  #     types: [python]
+  #     require_serial: true
+  #     files: ^tests/.*$

@@ -133,7 +133,6 @@
 #     )
 
 
-
 # class DLiteGenerateConfig(FunctionConfig):
 #     """DLite generate strategy config."""
 
@@ -205,7 +204,7 @@
 #             raise ValueError(
 #                 "One of `label` or `datamodel` configurations should be given."
 #             )
-        
+
 
 #         generator_relations = []
 #         parser_relations = []
@@ -214,7 +213,7 @@
 #                 generator_relations.append(r)
 #             else:
 #                 parser_relations.append(r)
-            
+
 
 #         # SPLIT RELATIONS
 #         existing_properties = list(inst.properties.keys())
@@ -237,7 +236,7 @@
 
 #                     if p_o == g_o:
 #                         p_n = p_s.split("#").pop()
-                        
+
 #                         if p_n in existing_properties:
 #                             exists = True
 #                         break

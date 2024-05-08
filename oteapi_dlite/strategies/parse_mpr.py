@@ -1,31 +1,24 @@
 """Strategy that parses resource id and return all associated download links."""
-import sys
-import requests
 
+import sys
 from typing import Annotated, Optional
 
-from pydantic.dataclasses import dataclass
-from pydantic import Field
-
-from oteapi.models import AttrDict, ResourceConfig, HostlessAnyUrl, ParserConfig
-
 import dlite
-from oteapi_dlite.utils import get_collection, update_collection
-from oteapi_dlite.utils import get_meta, dict2recarray, get_collection, update_collection
-from oteapi_dlite.models import DLiteSessionUpdate
-from oteapi.datacache import DataCache
-
-
-from galvani import BioLogic as BL
 import pandas as pd
+import requests
+from galvani import BioLogic as BL
+from oteapi.datacache import DataCache
+from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
+from pydantic import Field
+from pydantic.dataclasses import dataclass
 
+from oteapi_dlite.models import DLiteSessionUpdate
+from oteapi_dlite.utils import get_collection, get_meta, update_collection
 
 if sys.version_info >= (3, 10):
     from typing import Literal
 else:
     from typing_extensions import Literal
-
-
 
 
 class DLiteMPRParseConfig(AttrDict):
@@ -65,6 +58,7 @@ class DLiteMPRParseConfig(AttrDict):
         AttrDict(),
         description="A list of column names.",
     )
+
 
 class DLiteMPRStrategyConfig(ParserConfig):
     """DLite mpr parse strategy  config."""
@@ -118,9 +112,7 @@ class DLiteMPRStrategy:
         )
         return DLiteSessionUpdate(collection_id=collection_id)
 
-
     def get(self) -> DLiteMPRSessionUpdate:
-        
 
         config = self.parse_config
         # try:
@@ -133,7 +125,7 @@ class DLiteMPRStrategy:
         #     raise RuntimeError("Failed to update DLite storage path.") from e
 
         req = requests.get(
-            config.configuration.downloadUrl,
+            str(config.configuration.downloadUrl),
             allow_redirects=True,
             timeout=(3, 27),
         )
@@ -146,26 +138,26 @@ class DLiteMPRStrategy:
 
         if config.entity:
             req = requests.get(
-                config.entity,
+                str(config.entity),
                 allow_redirects=True,
                 timeout=(3, 27),
             )
 
             config_name = config.entity.path.split("/").pop()
 
-            with open(f"/entities/{config_name}", 'wb') as file:
+            with open(f"/entities/{config_name}", "wb") as file:
                 file.write(req.content)
             dlite.storage_path.append(f"/entities")
 
             meta = get_meta(config.entity)
             inst = meta(dims=[len(raw_data)], id=config.configuration.id)
 
-            relations=config.configuration.mpr_config
+            relations = config.configuration.mpr_config
 
             for relation_name, table_name in relations.items():
                 print(relation_name, table_name)
                 inst[relation_name] = raw_data[table_name]
-            
+
             coll = get_collection(
                 collection_id=config.configuration.collection_id
             )
@@ -177,5 +169,5 @@ class DLiteMPRStrategy:
             collection_id=coll.uuid,
             inst_uuid=inst.uuid,
             label=config.configuration.label,
-            mpr_data=raw_data.to_dict()
+            mpr_data=raw_data.to_dict(),
         )
