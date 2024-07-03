@@ -60,7 +60,8 @@ jobs:
       update_docs_landing_page: true
       package_dirs: oteapi_dlite
 
-  pytest:
+  pytest-linux:
+    name: pytest (linux-py${{ matrix.python-version }})
     runs-on: ubuntu-latest
 
     strategy:
