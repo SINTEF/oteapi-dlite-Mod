@@ -18,11 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'SINTEF/oteapi-dlite-Mod' && startsWith(github.ref, 'refs/tags/v')
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      # Build package
+      python_package: true
+      package_dirs: oteapi-dlite
+      python_version_build: "3.9"
+      build_libs: "flit"
+      build_cmd: "flit build"
+      publish_on_pypi: true
 
     - name: Set up Python 3.9
       uses: actions/setup-python@v5
