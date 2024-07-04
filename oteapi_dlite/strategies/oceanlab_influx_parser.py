@@ -1,14 +1,14 @@
 """Strategy for oceanlab data parsing from Influx DB."""
 
 import sys
-import pandas as pd
 from typing import Annotated, Optional
-import influxdb_client
-import jinja2
+
 import cachetools
 import dlite
+import influxdb_client
+import jinja2
+import pandas as pd
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
-
 from pint import Measurement
 from pydantic import Field
 from pydantic.dataclasses import dataclass
@@ -216,13 +216,13 @@ def query_to_df(query, url, USER, PASSWORD):
 # Define the Jinja2 template
 TEMPLATE = """{% macro fetchData(measurement, field) %}
     from(bucket: "{{ bucket }}")
-      |> range(start: -1d)    
-      |> filter(fn: (r) => r._measurement == "{{ measurement }}")    
-      |> filter(fn: (r) => r._field == "{{ field }}")    
+      |> range(start: -1d)
+      |> filter(fn: (r) => r._measurement == "{{ measurement }}")
+      |> filter(fn: (r) => r._field == "{{ field }}")
       |> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")
       |> limit(n: 50)
     {% endmacro %}
-    
+
     {%- for index, measurement in enumerate(measurements, 1) %}
     data{{ index }} = {{ fetchData(measurement.measurement, measurement.field) }}
     {%- endfor %}
@@ -236,13 +236,13 @@ TEMPLATE = """{% macro fetchData(measurement, field) %}
       on: ["_time"]
     )
     {%- endfor %}
-    
+
     finalData = join{{ measurements | length - 1 }}
-      |> keep(columns: ["_time", 
+      |> keep(columns: ["_time",
         {%- for measurement in measurements %}
         "{{ measurement.field }}"{% if not loop.last %}, {% endif %}
         {%- endfor %}
       ])
-    
+
     finalData
 """
