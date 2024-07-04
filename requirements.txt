@@ -5,3 +5,7 @@ Pillow>=9.0.1,<11
 # psycopg2-binary!=2.9.6
 # pydantic>=2.4.2,<3  # Indirect requirement
 tripper==0.2.15
+influxdb_client
+cachetools
+jinja2
+pandas
