@@ -142,7 +142,7 @@ class InfluxParseStrategy:
             raise RuntimeError("Failed to update DLite storage path.") from e
 
         try:
-            env = jinja2.Environment(loader=jinja2.BaseLoader)
+            env = jinja2.Environment(loader=jinja2.BaseLoader,autoescape=True)
             env.globals.update(enumerate=enumerate, str=str)
             bucket = f"{config.DATABASE}/{config.RETPOLICY}"
             configuration = {
