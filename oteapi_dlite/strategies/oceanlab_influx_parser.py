@@ -4,7 +4,7 @@ import sys
 from typing import Annotated, Optional
 import influxdb_client
 import jinja2
-import cachetools  # type ignore
+import cachetools  # type: ignore
 import dlite
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
 from pydantic import Field
