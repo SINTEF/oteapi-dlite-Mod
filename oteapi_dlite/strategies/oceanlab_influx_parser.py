@@ -85,13 +85,16 @@ class InfluxParseParseConfig(AttrDict):
         str, Field(description="timerange of values. eg : -12h")
     ] = "-12h"
 
-    size_limit: Annotated[int, Field(description="rows to be extracted", ge=0)] = 50
+    size_limit: Annotated[
+        int, Field(description="rows to be extracted", ge=0)
+    ] = 50
 
     measurements: Annotated[
         list[Measurement],
         Field(description="Measurement and field values as a list."),
     ] = [
-        Measurement(_) for _ in [
+        Measurement(_)
+        for _ in [
             {
                 "measurement": "ctd_conductivity_munkholmen",
                 "field": "conductivity",
