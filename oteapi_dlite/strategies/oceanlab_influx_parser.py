@@ -89,9 +89,7 @@ class InfluxParseParseConfig(AttrDict):
 
     measurements: Annotated[
         list[dict],
-        Field(
-            description="Measurement and field values as list of dictionary"
-        ),
+        Field(description="Measurement and field values as list of dictionary"),
     ] = [
         {
             "measurement": "ctd_conductivity_munkholmen",
