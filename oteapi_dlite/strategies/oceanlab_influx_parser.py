@@ -85,28 +85,30 @@ class InfluxParseParseConfig(AttrDict):
         str, Field(description="timerange of values. eg : -12h")
     ] = "-12h"
 
-    size_limit: Annotated[str, Field(description="rows to be extracted")] = "50"
+    size_limit: Annotated[int, Field(description="rows to be extracted", ge=0)] = 50
 
     measurements: Annotated[
-        list[dict],
-        Field(description="Measurement and field values as list of dictionary"),
+        list[Measurement],
+        Field(description="Measurement and field values as a list."),
     ] = [
-        {
-            "measurement": "ctd_conductivity_munkholmen",
-            "field": "conductivity",
-        },
-        {
-            "measurement": "ctd_density_munkholmen",
-            "field": "density",
-        },
-        {
-            "measurement": "ctd_salinity_munkholmen",
-            "field": "salinity",
-        },
-        {
-            "measurement": "ctd_pressure_munkholmen",
-            "field": "pressure",
-        },
+        Measurement(_) for _ in [
+            {
+                "measurement": "ctd_conductivity_munkholmen",
+                "field": "conductivity",
+            },
+            {
+                "measurement": "ctd_density_munkholmen",
+                "field": "density",
+            },
+            {
+                "measurement": "ctd_salinity_munkholmen",
+                "field": "salinity",
+            },
+            {
+                "measurement": "ctd_pressure_munkholmen",
+                "field": "pressure",
+            },
+        ]
     ]
 
 
@@ -187,7 +189,7 @@ class InfluxParseStrategy:
                 "bucket": bucket,
                 "timeRange": config.time_range,
                 "limitSize": config.size_limit,
-                "measurements": config.measurements,
+                "measurements": config.measurements.model_dump(),
             }
             tmpl = env.from_string(TEMPLATE)
             flux_query = tmpl.render(configuration).strip()
@@ -243,7 +245,7 @@ def query_to_df(
 
 
 # Define the Jinja2 template :
-# This creates the query to fetchdata from the
+# This creates the query to fetch data from the
 # influxdb based on the measurement and DB field.
 TEMPLATE = """{% macro fetchData(measurement, field) %}
     from(bucket: "{{ bucket }}")
