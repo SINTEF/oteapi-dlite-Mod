@@ -1,7 +1,7 @@
 """Strategy for oceanlab data parsing from Influx DB."""
 
-from asyncio.log import logger
 import sys
+from asyncio.log import logger
 from typing import Annotated, Optional
 
 import cachetools  # type: ignore
