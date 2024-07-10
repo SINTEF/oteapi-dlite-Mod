@@ -1,6 +1,6 @@
 """Generic generate strategy using DLite storage plugin."""
 
-# pylint: disable=unused-argument,invalid-name,possibly-used-before-assignment
+# pylint: disable=unused-argument,invalid-name
 import tempfile
 from typing import TYPE_CHECKING, Annotated, Optional
 
