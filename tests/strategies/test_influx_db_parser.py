@@ -51,9 +51,7 @@ class TestInfluxParseStrategyConfig(unittest.TestCase):
             entity="http://onto-ns.com/meta/oceanlab/1/ctd_salinity_munkholmen",
             configuration=parse_config,
         )
-        assert isinstance(
-            strategy_config.configuration, InfluxParseParseConfig
-        )
+        assert isinstance(strategy_config.configuration, InfluxParseParseConfig)
 
 
 class TestInfluxParseStrategy(unittest.TestCase):

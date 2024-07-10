@@ -35,15 +35,24 @@ class InfluxParseParseConfig(AttrDict):
         ),
     ] = "json-data"
 
-    resourceType: Annotated[Optional[Literal["resource/url"]], Field(
-        description=ResourceConfig.model_fields["resourceType"].description,
-    )] = "resource/url"
-    downloadUrl: Annotated[Optional[HostlessAnyUrl], Field(
-        description=ResourceConfig.model_fields["downloadUrl"].description,
-    )] = None
-    mediaType: Annotated[Optional[str], Field(
-        description=ResourceConfig.model_fields["mediaType"].description,
-    )] = None
+    resourceType: Annotated[
+        Optional[Literal["resource/url"]],
+        Field(
+            description=ResourceConfig.model_fields["resourceType"].description,
+        ),
+    ] = "resource/url"
+    downloadUrl: Annotated[
+        Optional[HostlessAnyUrl],
+        Field(
+            description=ResourceConfig.model_fields["downloadUrl"].description,
+        ),
+    ] = None
+    mediaType: Annotated[
+        Optional[str],
+        Field(
+            description=ResourceConfig.model_fields["mediaType"].description,
+        ),
+    ] = None
     storage_path: Annotated[
         Optional[str],
         Field(
@@ -76,7 +85,9 @@ class InfluxParseStrategyConfig(ParserConfig):
 
     configuration: Annotated[
         InfluxParseParseConfig,
-        Field(description="DLite InfluxDB parse strategy-specific configuration."),
+        Field(
+            description="DLite InfluxDB parse strategy-specific configuration."
+        ),
     ]
 
 
