@@ -5,10 +5,12 @@ from typing import Annotated, Optional
 
 import cachetools  # type: ignore
 import dlite
+from fastapi import logger
 import influxdb_client
 import jinja2
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
-from pydantic import Field
+from pandas import DataFrame
+from pydantic import Field, SecretStr
 from pydantic.dataclasses import dataclass
 
 from oteapi_dlite.models import DLiteSessionUpdate
@@ -68,7 +70,7 @@ class InfluxParseParseConfig(AttrDict):
     USER: Annotated[Optional[str], Field(description="user to the db")] = None
 
     PASSWORD: Annotated[
-        Optional[str], Field(description="user pwd to the db")
+        Optional[SecretStr], Field(description="user pwd to the db")
     ] = None
 
     DATABASE: Annotated[Optional[str], Field(description="database name")] = (
@@ -146,7 +148,7 @@ class InfluxParseStrategy:
                 for storage_path in config.storage_path.split("|"):
                     dlite.storage_path.append(storage_path)
         except Exception as e:
-            print(f"Error during update of DLite storage path: {e}")
+            logger.error(f"Error during update of DLite storage path: {e}")
             raise RuntimeError("Failed to update DLite storage path.") from e
 
         try:
@@ -179,13 +181,18 @@ class InfluxParseStrategy:
             tmpl = env.from_string(TEMPLATE)
             flux_query = tmpl.render(configuration).strip()
             columns = query_to_df(
-                flux_query, config.url, config.USER, config.PASSWORD
+                flux_query,
+                config.url,
+                config.USER,
+                config.PASSWORD.get_secret_value(),
             )
         except Exception as e:
-            # Handle errors that occur during Influx DB parser instantiation or
-            # data retrieval.
-            print(f"Error during InfluxDB parsing: {e}")
-            raise RuntimeError("Failed to parse InfluxDB data.") from e
+            # Handle errors that occur during JSON parser instantiation or
+            # data retrieval. You can log the exception, raise a custom
+            # exception, or handle it as needed. For example, logging the
+            # error and raising a custom exception:
+            logger.error(f"Error during JSON parsing: {e}")
+            raise RuntimeError("Failed to parse JSON data.") from e
 
         # Create DLite instance
         meta = get_meta(self.parse_config.entity)
@@ -203,7 +210,6 @@ class InfluxParseStrategy:
         coll = get_collection(
             collection_id=self.parse_config.configuration.collection_id
         )
-        print(coll)
         coll.add(config.label, inst)
         update_collection(coll)
 
@@ -215,7 +221,7 @@ class InfluxParseStrategy:
 
 
 @cachetools.cached(cache=cachetools.LRUCache(maxsize=128))
-def query_to_df(query, url, USER, PASSWORD):
+def query_to_df(query:str, url:str, USER:str, PASSWORD:SecretStr)-> DataFrame:
     """query_to_df"""
     with influxdb_client.InfluxDBClient(
         url=url, token=f"{USER}:{PASSWORD}"
@@ -223,7 +229,10 @@ def query_to_df(query, url, USER, PASSWORD):
         return client.query_api().query_data_frame(query)
 
 
-# Define the Jinja2 template
+# Define the Jinja2 template : 
+# This creates the query to fetchdata from the 
+# influxdb based on the measurement and DB field.
+
 TEMPLATE = """{% macro fetchData(measurement, field) %}
     from(bucket: "{{ bucket }}")
       |> range(start: -1d)
