@@ -90,7 +90,7 @@ class InfluxParseParseConfig(AttrDict):
     measurements: Annotated[
         list[dict],
         Field(
-            description="Measurements with measurement and field values as list of dictionary"
+            description="Measurement and field values as list of dictionary"
         ),
     ] = [
         {
