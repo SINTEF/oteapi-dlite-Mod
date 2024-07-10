@@ -57,6 +57,7 @@ class TestInfluxParseStrategyConfig(unittest.TestCase):
 class TestInfluxParseStrategy(unittest.TestCase):
     """Test startegy initialize and get"""
 
+    @patch("oteapi_dlite.utils.get_collection")
     def test_initialize(self, mock_get_collection):
         """Test initialize function"""
         mock_collection = MagicMock()
@@ -71,6 +72,9 @@ class TestInfluxParseStrategy(unittest.TestCase):
         session_update = strategy.initialize()
         self.assertEqual(session_update.collection_id, "test_uuid")
 
+    @patch("oteapi_dlite.utils.utils.get_meta")
+    @patch("query_to_df")
+    @patch("oteapi_dlite.utils.get_collection")
     def test_get(self, mock_get_collection, mock_query_to_df, mock_get_meta):
         """test get function"""
         mock_collection = MagicMock()
