@@ -66,6 +66,8 @@ class TestInfluxParseStrategy(unittest.TestCase):
 
         strategy = InfluxParseStrategy(
             parse_config=InfluxParseStrategyConfig(
+                parserType="influx/vnd.dlite-influx",
+            entity="http://onto-ns.com/meta/0.4/dummy",
                 configuration=InfluxParseParseConfig()
             )
         )
@@ -91,6 +93,8 @@ class TestInfluxParseStrategy(unittest.TestCase):
 
         strategy = InfluxParseStrategy(
             parse_config=InfluxParseStrategyConfig(
+                parserType="influx/vnd.dlite-influx",
+            entity="http://onto-ns.com/meta/0.4/dummy",
                 configuration=InfluxParseParseConfig(
                     url="http://db.url",
                     USER="test_user",
