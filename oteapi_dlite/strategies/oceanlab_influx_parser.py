@@ -7,10 +7,10 @@ import cachetools  # type: ignore
 import dlite
 import influxdb_client
 import jinja2
-from fastapi import logger
+import logging
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
 from pandas import DataFrame
-from pydantic import Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr
 from pydantic.dataclasses import dataclass
 
 from oteapi_dlite.models import DLiteSessionUpdate
@@ -21,6 +21,16 @@ if sys.version_info >= (3, 10):
     from typing import Literal
 else:
     from typing_extensions import Literal
+logger = logging.getLogger(__name__)
+
+
+class Measurement(BaseModel):
+    """Measurement and field value from the Influx DB"""
+
+    measurement: Annotated[str, Field(description="The measurement name")]
+    field: Annotated[
+        str, Field(description="The measurement's field in the DB")
+    ]
 
 
 class InfluxParseParseConfig(AttrDict):
@@ -93,7 +103,7 @@ class InfluxParseParseConfig(AttrDict):
         list[Measurement],
         Field(description="Measurement and field values as a list."),
     ] = [
-        Measurement(_)
+        Measurement(**_)
         for _ in [
             {
                 "measurement": "ctd_conductivity_munkholmen",
@@ -188,11 +198,15 @@ class InfluxParseStrategy:
             env = jinja2.Environment(loader=jinja2.BaseLoader, autoescape=True)
             env.globals.update(enumerate=enumerate, str=str)
             bucket = f"{config.DATABASE}/{config.RETPOLICY}"
+            print("config.measurements")
+            print([measurement.dict() for measurement in config.measurements])
             configuration = {
                 "bucket": bucket,
                 "timeRange": config.time_range,
-                "limitSize": config.size_limit,
-                "measurements": config.measurements.model_dump(),
+                "limitSize": str(config.size_limit),
+                "measurements": [
+                    measurement.dict() for measurement in config.measurements
+                ],
             }
             tmpl = env.from_string(TEMPLATE)
             flux_query = tmpl.render(configuration).strip()
