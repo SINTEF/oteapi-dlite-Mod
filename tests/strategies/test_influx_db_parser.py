@@ -103,7 +103,7 @@ class TestInfluxParseStrategy(unittest.TestCase):
                     RETPOLICY="test_policy",
                     storage_path="/path/to/storage|another/path",
                     label="test_label",
-                )
+                ),
             )
         )
         session_update = strategy.get()
