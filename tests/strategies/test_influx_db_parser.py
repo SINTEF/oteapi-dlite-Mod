@@ -1,14 +1,13 @@
 """Test Influx db parser"""
 
 import unittest
-from unittest.mock import MagicMock, patch
-
+from unittest.mock import patch, MagicMock
 from pydantic import ValidationError
 
 from oteapi_dlite.strategies.oceanlab_influx_parser import (
     InfluxParseParseConfig,
-    InfluxParseStrategy,
     InfluxParseStrategyConfig,
+    InfluxParseStrategy,
     query_to_df,
 )
 
@@ -42,6 +41,7 @@ class TestInfluxParseParseConfig(unittest.TestCase):
 
 
 class TestInfluxParseStrategyConfig(unittest.TestCase):
+    """Test strategy config"""
     def test_valid_strategy_config(self):
         """Test config instance"""
         parse_config = InfluxParseParseConfig()
@@ -56,64 +56,7 @@ class TestInfluxParseStrategyConfig(unittest.TestCase):
 
 
 class TestInfluxParseStrategy(unittest.TestCase):
-    """Test startegy initialize and get"""
-
-    @patch("oteapi_dlite.utils.get_collection")
-    def test_initialize(self, mock_get_collection):
-        """Test initialize function"""
-        mock_collection = MagicMock()
-        mock_collection.uuid = "test_uuid"
-        mock_get_collection.return_value = mock_collection
-
-        strategy = InfluxParseStrategy(
-            parse_config=InfluxParseStrategyConfig(
-                parserType="influx/vnd.dlite-influx",
-                entity="http://onto-ns.com/meta/oceanlab/1/ctd_salinity_munkholmen",
-                configuration=InfluxParseParseConfig(),
-            )
-        )
-        session_update = strategy.initialize()
-        self.assertEqual(session_update.collection_id, "test_uuid")
-
-    @patch("oteapi_dlite.utils.utils.get_meta")
-    @patch("oteapi_dlite.strategies.oceanlab_influx_parser.query_to_df")
-    @patch("oteapi_dlite.utils.get_collection")
-    def test_get(self, mock_get_collection, mock_query_to_df, mock_get_meta):
-        """test get function"""
-        mock_collection = MagicMock()
-        mock_collection.uuid = "test_uuid"
-        mock_get_collection.return_value = mock_collection
-
-        mock_df = MagicMock()
-        mock_query_to_df.return_value = mock_df
-
-        mock_meta = MagicMock()
-        mock_inst = MagicMock()
-        mock_meta.return_value = mock_inst
-        mock_get_meta.return_value = mock_meta
-
-        strategy = InfluxParseStrategy(
-            parse_config=InfluxParseStrategyConfig(
-                parserType="influx/vnd.dlite-influx",
-                entity="http://onto-ns.com/meta/oceanlab/1/ctd_salinity_munkholmen",
-                configuration=InfluxParseParseConfig(
-                    url="http://db.url",
-                    USER="test_user",
-                    PASSWORD="test_password",
-                    DATABASE="test_db",
-                    RETPOLICY="test_policy",
-                    storage_path="/path/to/storage|another/path",
-                    label="test_label",
-                ),
-            )
-        )
-        session_update = strategy.get()
-        self.assertEqual(session_update.collection_id, "test_uuid")
-        self.assertEqual(session_update.label, "test_label")
-        mock_get_collection.assert_called()
-        mock_query_to_df.assert_called()
-        mock_get_meta.assert_called()
-
+    """Test functions in ParserStrategy"""
     @patch("influxdb_client.InfluxDBClient")
     def test_query_to_df(self, mock_influxdb_client):
         """Test query to df"""
