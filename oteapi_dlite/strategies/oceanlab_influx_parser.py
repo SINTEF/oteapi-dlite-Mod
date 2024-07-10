@@ -1,5 +1,6 @@
 """Strategy for oceanlab data parsing from Influx DB."""
 
+import logging
 import sys
 from typing import Annotated, Optional
 
@@ -7,7 +8,6 @@ import cachetools  # type: ignore
 import dlite
 import influxdb_client
 import jinja2
-import logging
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
 from pandas import DataFrame
 from pydantic import BaseModel, Field, SecretStr
