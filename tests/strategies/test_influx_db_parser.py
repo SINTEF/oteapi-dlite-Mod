@@ -68,8 +68,8 @@ class TestInfluxParseStrategy(unittest.TestCase):
         strategy = InfluxParseStrategy(
             parse_config=InfluxParseStrategyConfig(
                 parserType="influx/vnd.dlite-influx",
-            entity="http://onto-ns.com/meta/oceanlab/1/ctd_salinity_munkholmen",
-                configuration=InfluxParseParseConfig()
+                entity="http://onto-ns.com/meta/oceanlab/1/ctd_salinity_munkholmen",
+                configuration=InfluxParseParseConfig(),
             )
         )
         session_update = strategy.initialize()
@@ -95,7 +95,7 @@ class TestInfluxParseStrategy(unittest.TestCase):
         strategy = InfluxParseStrategy(
             parse_config=InfluxParseStrategyConfig(
                 parserType="influx/vnd.dlite-influx",
-            entity="http://onto-ns.com/meta/oceanlab/1/ctd_salinity_munkholmen",
+                entity="http://onto-ns.com/meta/oceanlab/1/ctd_salinity_munkholmen",
                 configuration=InfluxParseParseConfig(
                     url="http://db.url",
                     USER="test_user",
@@ -104,7 +104,7 @@ class TestInfluxParseStrategy(unittest.TestCase):
                     RETPOLICY="test_policy",
                     storage_path="/path/to/storage|another/path",
                     label="test_label",
-                )
+                ),
             )
         )
         session_update = strategy.get()
