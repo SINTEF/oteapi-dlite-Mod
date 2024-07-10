@@ -7,8 +7,6 @@ import cachetools  # type: ignore
 import dlite
 import influxdb_client
 import jinja2
-import cachetools  # type: ignore
-import dlite
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
 from pydantic import Field
 from pydantic.dataclasses import dataclass
