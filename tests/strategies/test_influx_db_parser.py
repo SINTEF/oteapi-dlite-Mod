@@ -1,14 +1,13 @@
 """Test Influx db parser"""
 
 import unittest
-from unittest.mock import MagicMock, patch
-
+from unittest.mock import patch, MagicMock
 from pydantic import ValidationError
 
 from oteapi_dlite.strategies.oceanlab_influx_parser import (
     InfluxParseParseConfig,
-    InfluxParseStrategy,
     InfluxParseStrategyConfig,
+    InfluxParseStrategy,
     query_to_df,
 )
 
@@ -47,7 +46,7 @@ class TestInfluxParseStrategyConfig(unittest.TestCase):
         parse_config = InfluxParseParseConfig()
         strategy_config = InfluxParseStrategyConfig(
             parserType="influx/vnd.dlite-influx",
-            entity="http://onto-ns.com/meta/0.4/dummy",
+            entity="http://onto-ns.com/meta/0.1/Energy",
             configuration=parse_config,
         )
         self.assertIsInstance(
@@ -68,7 +67,7 @@ class TestInfluxParseStrategy(unittest.TestCase):
         strategy = InfluxParseStrategy(
             parse_config=InfluxParseStrategyConfig(
                 parserType="influx/vnd.dlite-influx",
-            entity="http://onto-ns.com/meta/0.4/dummy",
+            entity="http://onto-ns.com/meta/0.1/Energy",
                 configuration=InfluxParseParseConfig()
             )
         )
@@ -95,7 +94,7 @@ class TestInfluxParseStrategy(unittest.TestCase):
         strategy = InfluxParseStrategy(
             parse_config=InfluxParseStrategyConfig(
                 parserType="influx/vnd.dlite-influx",
-            entity="http://onto-ns.com/meta/0.4/dummy",
+            entity="http://onto-ns.com/meta/0.1/Energy",
                 configuration=InfluxParseParseConfig(
                     url="http://db.url",
                     USER="test_user",
