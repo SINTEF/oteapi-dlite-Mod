@@ -1,13 +1,14 @@
 """Test Influx db parser"""
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from pydantic import ValidationError
 
 from oteapi_dlite.strategies.oceanlab_influx_parser import (
     InfluxParseParseConfig,
-    InfluxParseStrategyConfig,
     InfluxParseStrategy,
+    InfluxParseStrategyConfig,
     query_to_df,
 )
 
@@ -42,6 +43,7 @@ class TestInfluxParseParseConfig(unittest.TestCase):
 
 class TestInfluxParseStrategyConfig(unittest.TestCase):
     """Test strategy config"""
+
     def test_valid_strategy_config(self):
         """Test config instance"""
         parse_config = InfluxParseParseConfig()
@@ -57,6 +59,7 @@ class TestInfluxParseStrategyConfig(unittest.TestCase):
 
 class TestInfluxParseStrategy(unittest.TestCase):
     """Test functions in ParserStrategy"""
+
     @patch("influxdb_client.InfluxDBClient")
     def test_query_to_df(self, mock_influxdb_client):
         """Test query to df"""
