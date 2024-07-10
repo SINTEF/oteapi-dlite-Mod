@@ -1,14 +1,13 @@
 """Test Influx db parser"""
 
 import unittest
-from unittest.mock import MagicMock, patch
-
+from unittest.mock import patch, MagicMock
 from pydantic import ValidationError
 
 from oteapi_dlite.strategies.oceanlab_influx_parser import (
     InfluxParseParseConfig,
-    InfluxParseStrategy,
     InfluxParseStrategyConfig,
+    InfluxParseStrategy,
     query_to_df,
 )
 
@@ -74,7 +73,7 @@ class TestInfluxParseStrategy(unittest.TestCase):
         self.assertEqual(session_update.collection_id, "test_uuid")
 
     @patch("oteapi_dlite.utils.utils.get_meta")
-    @patch("query_to_df")
+    @patch("oteapi_dlite.strategies.oceanlab_influx_parser.query_to_df")
     @patch("oteapi_dlite.utils.get_collection")
     def test_get(self, mock_get_collection, mock_query_to_df, mock_get_meta):
         """test get function"""
