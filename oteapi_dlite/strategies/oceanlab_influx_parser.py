@@ -1,7 +1,6 @@
 """Strategy for oceanlab data parsing from Influx DB."""
 
 import sys
-from asyncio.log import logger
 from typing import Annotated, Optional
 
 import cachetools  # type: ignore
@@ -11,7 +10,7 @@ import jinja2
 from fastapi import logger
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
 from pandas import DataFrame
-from pydantic import Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr
 from pydantic.dataclasses import dataclass
 
 from oteapi_dlite.models import DLiteSessionUpdate
@@ -24,7 +23,9 @@ else:
     from typing_extensions import Literal
 
 
-class MeasurementConfig(AttrDict):
+class MeasurementConfig(BaseModel):
+    """Measurement config"""
+
     measurement: Annotated[
         Optional[str], Field(description="measurement table name")
     ] = None
