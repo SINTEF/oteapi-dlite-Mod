@@ -23,11 +23,6 @@ else:
     from typing_extensions import Literal
 
 
-class MeasurementConfig(BaseModel):
-    measurement: str
-    field: str
-
-
 class InfluxParseParseConfig(AttrDict):
     """Configuration for DLite Excel parser."""
 
@@ -93,8 +88,10 @@ class InfluxParseParseConfig(AttrDict):
     size_limit: Annotated[str, Field(description="rows to be extracted")] = "50"
 
     measurements: Annotated[
-        list[MeasurementConfig],
-        Field(description="list of measurements in dict"),
+        list[dict],
+        Field(
+            description="list of measurements containing measurement and field values as list of dictionary"
+        ),
     ] = [
         {
             "measurement": "ctd_conductivity_munkholmen",
