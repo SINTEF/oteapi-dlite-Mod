@@ -1,3 +1,5 @@
+"""Test Influx db parser"""
+
 import unittest
 from unittest.mock import patch, MagicMock
 from pydantic import ValidationError
@@ -11,7 +13,10 @@ from oteapi_dlite.strategies.oceanlab_influx_parser import (
 
 
 class TestInfluxParseParseConfig(unittest.TestCase):
+    """Test configuration"""
+
     def test_valid_config(self):
+        """Test configuration validity"""
         config = InfluxParseParseConfig(
             id="test_id",
             label="test_label",
@@ -30,22 +35,31 @@ class TestInfluxParseParseConfig(unittest.TestCase):
         self.assertEqual(config.label, "test_label")
 
     def test_invalid_config(self):
+        """Test validation error"""
         with self.assertRaises(ValidationError):
             InfluxParseParseConfig(id=123)  # id should be a string or None
 
 
 class TestInfluxParseStrategyConfig(unittest.TestCase):
     def test_valid_strategy_config(self):
+        """Test config instance"""
         parse_config = InfluxParseParseConfig()
-        strategy_config = InfluxParseStrategyConfig(configuration=parse_config)
+        strategy_config = InfluxParseStrategyConfig(
+            parserType="influx/vnd.dlite-influx",
+            entity="http://onto-ns.com/meta/0.4/dummy",
+            configuration=parse_config,
+        )
         self.assertIsInstance(
             strategy_config.configuration, InfluxParseParseConfig
         )
 
 
 class TestInfluxParseStrategy(unittest.TestCase):
-    @patch("oceanlab_influx_parser.get_collection")
+    """Test startegy initialize and get"""
+
+    @patch("InfluxParseStrategy.get_collection")
     def test_initialize(self, mock_get_collection):
+        """Test initialize function"""
         mock_collection = MagicMock()
         mock_collection.uuid = "test_uuid"
         mock_get_collection.return_value = mock_collection
@@ -58,10 +72,11 @@ class TestInfluxParseStrategy(unittest.TestCase):
         session_update = strategy.initialize()
         self.assertEqual(session_update.collection_id, "test_uuid")
 
-    @patch("oceanlab_influx_parser.get_meta")
-    @patch("oceanlab_influx_parser.query_to_df")
-    @patch("oceanlab_influx_parser.get_collection")
+    @patch("InfluxParseStrategy.get_meta")
+    @patch("InfluxParseStrategy.query_to_df")
+    @patch("InfluxParseStrategy.get_collection")
     def test_get(self, mock_get_collection, mock_query_to_df, mock_get_meta):
+        """test get function"""
         mock_collection = MagicMock()
         mock_collection.uuid = "test_uuid"
         mock_get_collection.return_value = mock_collection
@@ -94,8 +109,9 @@ class TestInfluxParseStrategy(unittest.TestCase):
         mock_query_to_df.assert_called()
         mock_get_meta.assert_called()
 
-    @patch("oceanlab_influx_parser.influxdb_client.InfluxDBClient")
+    @patch("influxdb_client.InfluxDBClient")
     def test_query_to_df(self, mock_influxdb_client):
+        """Test query to df"""
         mock_client = MagicMock()
         mock_query_api = MagicMock()
         mock_client.query_api.return_value = mock_query_api
