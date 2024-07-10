@@ -31,8 +31,8 @@ class TestInfluxParseParseConfig(unittest.TestCase):
             DATABASE="test_db",
             RETPOLICY="test_policy",
         )
-        self.assertEqual(config.id, "test_id")
-        self.assertEqual(config.label, "test_label")
+        assert config.id == "test_id"
+        assert config.label == "test_label"
 
     def test_invalid_config(self):
         """Test validation error"""
@@ -51,7 +51,7 @@ class TestInfluxParseStrategyConfig(unittest.TestCase):
             entity="http://onto-ns.com/meta/oceanlab/1/ctd_salinity_munkholmen",
             configuration=parse_config,
         )
-        self.assertIsInstance(
+        assert isinstance(
             strategy_config.configuration, InfluxParseParseConfig
         )
 
@@ -73,7 +73,7 @@ class TestInfluxParseStrategy(unittest.TestCase):
         result = query_to_df(
             "test_query", "http://db.url", "test_user", "test_password"
         )
-        self.assertEqual(result, mock_df)
+        assert result == mock_df
         mock_influxdb_client.assert_called_once_with(
             url="http://db.url", token="test_user:test_password"
         )

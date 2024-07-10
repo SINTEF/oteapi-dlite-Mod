@@ -35,18 +35,15 @@ class InfluxParseParseConfig(AttrDict):
         ),
     ] = "json-data"
 
-    resourceType: Optional[Literal["resource/url"]] = Field(
-        "resource/url",
+    resourceType: Annotated[Optional[Literal["resource/url"]], Field(
         description=ResourceConfig.model_fields["resourceType"].description,
-    )
-    downloadUrl: Optional[HostlessAnyUrl] = Field(
-        None,
+    )] = "resource/url"
+    downloadUrl: Annotated[Optional[HostlessAnyUrl], Field(
         description=ResourceConfig.model_fields["downloadUrl"].description,
-    )
-    mediaType: Optional[str] = Field(
-        None,
+    )] = None
+    mediaType: Annotated[Optional[str], Field(
         description=ResourceConfig.model_fields["mediaType"].description,
-    )
+    )] = None
     storage_path: Annotated[
         Optional[str],
         Field(
@@ -79,7 +76,7 @@ class InfluxParseStrategyConfig(ParserConfig):
 
     configuration: Annotated[
         InfluxParseParseConfig,
-        Field(description="DLite json parse strategy-specific configuration."),
+        Field(description="DLite InfluxDB parse strategy-specific configuration."),
     ]
 
 
@@ -107,7 +104,7 @@ class InfluxParseStrategy:
     **Registers strategies**:
 
     - `("parserType",
-        "json/vnd.dlite-json")`
+        "influx/vnd.dlite-influx")`
 
     """
 
@@ -174,12 +171,10 @@ class InfluxParseStrategy:
                 flux_query, config.url, config.USER, config.PASSWORD
             )
         except Exception as e:
-            # Handle errors that occur during JSON parser instantiation or
-            # data retrieval. You can log the exception, raise a custom
-            # exception, or handle it as needed. For example, logging the
-            # error and raising a custom exception:
-            print(f"Error during JSON parsing: {e}")
-            raise RuntimeError("Failed to parse JSON data.") from e
+            # Handle errors that occur during Influx DB parser instantiation or
+            # data retrieval.
+            print(f"Error during InfluxDB parsing: {e}")
+            raise RuntimeError("Failed to parse InfluxDB data.") from e
 
         # Create DLite instance
         meta = get_meta(self.parse_config.entity)
@@ -214,8 +209,7 @@ def query_to_df(query, url, USER, PASSWORD):
     with influxdb_client.InfluxDBClient(
         url=url, token=f"{USER}:{PASSWORD}"
     ) as client:
-        df = client.query_api().query_data_frame(query)
-    return df
+        return client.query_api().query_data_frame(query)
 
 
 # Define the Jinja2 template
