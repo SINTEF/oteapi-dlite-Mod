@@ -186,7 +186,7 @@ class InfluxParseStrategy:
         inst = meta(dims=[configuration["limitSize"]])
 
         for name in [
-            measurement["field"]
+            measurement["field"]  # type: ignore
             for measurement in configuration["measurements"]
         ]:
             inst[name] = columns[name]
