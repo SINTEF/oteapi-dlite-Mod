@@ -1,11 +1,12 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from pydantic import ValidationError
 
 from oteapi_dlite.strategies.oceanlab_influx_parser import (
     InfluxParseParseConfig,
-    InfluxParseStrategyConfig,
     InfluxParseStrategy,
+    InfluxParseStrategyConfig,
     query_to_df,
 )
 
