@@ -1,5 +1,6 @@
 """Strategy for oceanlab data parsing from Influx DB."""
 
+from asyncio.log import logger
 import sys
 from typing import Annotated, Optional
 
@@ -7,7 +8,6 @@ import cachetools  # type: ignore
 import dlite
 import influxdb_client
 import jinja2
-from fastapi import logger
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
 from pandas import DataFrame
 from pydantic import Field, SecretStr
@@ -184,7 +184,7 @@ class InfluxParseStrategy:
                 flux_query,
                 config.url,
                 config.USER,
-                config.PASSWORD.get_secret_value(),
+                config.PASSWORD.get_secret_value(),  # type: ignore
             )
         except Exception as e:
             # Handle errors that occur during JSON parser instantiation or
