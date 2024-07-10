@@ -1,11 +1,11 @@
 """Strategy for oceanlab data parsing from Influx DB."""
 
-from asyncio.log import logger
 import sys
 from typing import Annotated, Optional
 
 import cachetools  # type: ignore
 import dlite
+from fastapi import logger
 import influxdb_client
 import jinja2
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
@@ -21,6 +21,15 @@ if sys.version_info >= (3, 10):
     from typing import Literal
 else:
     from typing_extensions import Literal
+
+
+class MeasurementConfig(AttrDict):
+    measurement: Annotated[
+        Optional[str], Field(description="measurement table name")
+    ] = None
+    field: Annotated[
+        Optional[str], Field(description="column or field name")
+    ] = None
 
 
 class InfluxParseParseConfig(AttrDict):
@@ -81,6 +90,34 @@ class InfluxParseParseConfig(AttrDict):
         Optional[str], Field(description="retpolicy for db")
     ] = None
 
+    time_range: Annotated[
+        str, Field(description="timerange of values. eg : -12h")
+    ] = "-12h"
+
+    size_limit: Annotated[str, Field(description="rows to be extracted")] = "50"
+
+    measurements: Annotated[
+        list[MeasurementConfig],
+        Field(description="list of measurements in dict"),
+    ] = [
+        {
+            "measurement": "ctd_conductivity_munkholmen",
+            "field": "conductivity",
+        },
+        {
+            "measurement": "ctd_density_munkholmen",
+            "field": "density",
+        },
+        {
+            "measurement": "ctd_salinity_munkholmen",
+            "field": "salinity",
+        },
+        {
+            "measurement": "ctd_pressure_munkholmen",
+            "field": "pressure",
+        },
+    ]
+
 
 class InfluxParseStrategyConfig(ParserConfig):
     """DLite excel parse strategy  config."""
@@ -93,7 +130,7 @@ class InfluxParseStrategyConfig(ParserConfig):
     ]
 
 
-class InfluxParseSessionUpdate(DLiteSessionUpdate):
+class InfluxParserUpdate(DLiteSessionUpdate):
     """Class for returning values from DLite json parser."""
 
     inst_uuid: Annotated[
@@ -131,7 +168,7 @@ class InfluxParseStrategy:
         )
         return DLiteSessionUpdate(collection_id=collection_id)
 
-    def get(self) -> InfluxParseSessionUpdate:
+    def get(self) -> InfluxParserUpdate:
         """Execute the strategy.
 
         This method will be called through the strategy-specific endpoint
@@ -157,26 +194,9 @@ class InfluxParseStrategy:
             bucket = f"{config.DATABASE}/{config.RETPOLICY}"
             configuration = {
                 "bucket": bucket,
-                "timeRange": "-12h",
-                "limitSize": "50",
-                "measurements": [
-                    {
-                        "measurement": "ctd_conductivity_munkholmen",
-                        "field": "conductivity",
-                    },
-                    {
-                        "measurement": "ctd_density_munkholmen",
-                        "field": "density",
-                    },
-                    {
-                        "measurement": "ctd_salinity_munkholmen",
-                        "field": "salinity",
-                    },
-                    {
-                        "measurement": "ctd_pressure_munkholmen",
-                        "field": "pressure",
-                    },
-                ],
+                "timeRange": config.time_range,
+                "limitSize": config.size_limit,
+                "measurements": config.measurements,
             }
             tmpl = env.from_string(TEMPLATE)
             flux_query = tmpl.render(configuration).strip()
@@ -213,7 +233,7 @@ class InfluxParseStrategy:
         coll.add(config.label, inst)
         update_collection(coll)
 
-        return InfluxParseSessionUpdate(
+        return InfluxParserUpdate(
             collection_id=coll.uuid,
             inst_uuid=inst.uuid,
             label=config.label,
@@ -234,7 +254,6 @@ def query_to_df(
 # Define the Jinja2 template :
 # This creates the query to fetchdata from the
 # influxdb based on the measurement and DB field.
-
 TEMPLATE = """{% macro fetchData(measurement, field) %}
     from(bucket: "{{ bucket }}")
       |> range(start: -1d)
