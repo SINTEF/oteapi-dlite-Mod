@@ -5,9 +5,9 @@ from typing import Annotated, Optional
 
 import cachetools  # type: ignore
 import dlite
-from fastapi import logger
 import influxdb_client
 import jinja2
+from fastapi import logger
 from oteapi.models import AttrDict, HostlessAnyUrl, ParserConfig, ResourceConfig
 from pandas import DataFrame
 from pydantic import Field, SecretStr
@@ -221,7 +221,9 @@ class InfluxParseStrategy:
 
 
 @cachetools.cached(cache=cachetools.LRUCache(maxsize=128))
-def query_to_df(query:str, url:str, USER:str, PASSWORD:SecretStr)-> DataFrame:
+def query_to_df(
+    query: str, url: str, USER: str, PASSWORD: SecretStr
+) -> DataFrame:
     """query_to_df"""
     with influxdb_client.InfluxDBClient(
         url=url, token=f"{USER}:{PASSWORD}"
@@ -229,8 +231,8 @@ def query_to_df(query:str, url:str, USER:str, PASSWORD:SecretStr)-> DataFrame:
         return client.query_api().query_data_frame(query)
 
 
-# Define the Jinja2 template : 
-# This creates the query to fetchdata from the 
+# Define the Jinja2 template :
+# This creates the query to fetchdata from the
 # influxdb based on the measurement and DB field.
 
 TEMPLATE = """{% macro fetchData(measurement, field) %}
