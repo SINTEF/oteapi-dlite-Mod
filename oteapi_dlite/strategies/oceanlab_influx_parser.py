@@ -203,7 +203,8 @@ class InfluxParseStrategy:
                 "timeRange": config.time_range,
                 "limitSize": str(config.size_limit),
                 "measurements": [
-                    measurement.model_dump() for measurement in config.measurements
+                    measurement.model_dump()
+                    for measurement in config.measurements
                 ],
             }
             tmpl = env.from_string(TEMPLATE)
