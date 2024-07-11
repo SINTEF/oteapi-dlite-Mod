@@ -191,7 +191,7 @@ class InfluxParseStrategy:
                 for storage_path in config.storage_path.split("|"):
                     dlite.storage_path.append(storage_path)
         except Exception as e:
-            logger.error(f"Error during update of DLite storage path: {e}")
+            logger.error("Error during update of DLite storage path: %s", e)
             raise RuntimeError("Failed to update DLite storage path.") from e
 
         try:
@@ -219,7 +219,7 @@ class InfluxParseStrategy:
             # data retrieval. You can log the exception, raise a custom
             # exception, or handle it as needed. For example, logging the
             # error and raising a custom exception:
-            logger.error(f"Error during JSON parsing: {e}")
+            logger.error("Error during JSON parsing: %s", e)
             raise RuntimeError("Failed to parse JSON data.") from e
 
         # Create DLite instance
