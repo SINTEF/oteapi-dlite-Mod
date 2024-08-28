@@ -333,53 +333,53 @@ def fetch_and_populate_graph(
         sparql.setReturnFormat(JSON)
 
         query = f"""
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX fno: <https://w3id.org/function/ontology#>
-PREFIX emmo: <http://emmo.info/domain-mappings#>
-PREFIX oteio: <http://emmo.info/oteio#>
+        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX fno: <https://w3id.org/function/ontology#>
+        PREFIX emmo: <http://emmo.info/domain-mappings#>
+        PREFIX oteio: <http://emmo.info/oteio#>
 
-SELECT DISTINCT ?subject ?predicate ?object
-WHERE {{
-  GRAPH <{graph_uri}> {{
+        SELECT DISTINCT ?subject ?predicate ?object
+        WHERE {{
+        GRAPH <{graph_uri}> {{
 
-    # Match all subclasses of the parent class
-    ?subclass rdfs:subClassOf* <{parent_node}> .
+            # Match all subclasses of the parent class
+            ?subclass rdfs:subClassOf* <{parent_node}> .
 
-    # Retrieve all relevant triples for these subclasses and their individuals
-    {{
-      # Subclasses themselves and their relationships
-      ?subclass ?predicate ?object .
-      BIND(?subclass AS ?subject)
-    }} UNION {{
-      # Individuals of these subclasses and their properties
-      ?subject rdf:type ?subclass .
-      ?subject ?predicate ?object .
-    }}
+            # Retrieve all relevant triples for these subclasses and their individuals
+            {{
+            # Subclasses themselves and their relationships
+            ?subclass ?predicate ?object .
+            BIND(?subclass AS ?subject)
+            }} UNION {{
+            # Individuals of these subclasses and their properties
+            ?subject rdf:type ?subclass .
+            ?subject ?predicate ?object .
+            }}
 
-    # Ensure subject, predicate, and object are not empty
-    FILTER(BOUND(?subject) && BOUND(?predicate) && BOUND(?object))
+            # Ensure subject, predicate, and object are not empty
+            FILTER(BOUND(?subject) && BOUND(?predicate) && BOUND(?object))
 
-    # Filter by the specific predicates
-    FILTER (?predicate IN (
-        rdfs:label,
-        rdf:type,
-        rdf:about,
-        owl:propertyDisjointWith,
-        fno:expects,
-        fno:predicate,
-        fno:type,
-        fno:returns,
-        fno:executes,
-        oteio:hasPythonFunctionName,
-        oteio:hasPythonModuleName,
-        oteio:hasPypiPackageName,
-        emmo:mapsTo))
-  }}
-}}
-"""
+            # Filter by the specific predicates
+            FILTER (?predicate IN (
+                rdfs:label,
+                rdf:type,
+                rdf:about,
+                owl:propertyDisjointWith,
+                fno:expects,
+                fno:predicate,
+                fno:type,
+                fno:returns,
+                fno:executes,
+                oteio:hasPythonFunctionName,
+                oteio:hasPythonModuleName,
+                oteio:hasPypiPackageName,
+                emmo:mapsTo))
+        }}
+        }}
+        """
         sparql.setQuery(query)
 
         results = sparql.query().convert()
