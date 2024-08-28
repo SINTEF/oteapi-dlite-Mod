@@ -243,7 +243,7 @@ def find_parent_node(
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX owl: <http://www.w3.org/2002/07/owl#>
-        
+
         SELECT ?parentClass
         WHERE {
             GRAPH <{{ graph_uri }}> {
@@ -344,10 +344,10 @@ PREFIX oteio: <http://emmo.info/oteio#>
 SELECT DISTINCT ?subject ?predicate ?object
 WHERE {{
   GRAPH <{graph_uri}> {{
-    
+
     # Match all subclasses of the parent class
     ?subclass rdfs:subClassOf* <{parent_node}> .
-    
+
     # Retrieve all relevant triples for these subclasses and their individuals
     {{
       # Subclasses themselves and their relationships
@@ -358,7 +358,7 @@ WHERE {{
       ?subject rdf:type ?subclass .
       ?subject ?predicate ?object .
     }}
-    
+
     # Ensure subject, predicate, and object are not empty
     FILTER(BOUND(?subject) && BOUND(?predicate) && BOUND(?object))
 
