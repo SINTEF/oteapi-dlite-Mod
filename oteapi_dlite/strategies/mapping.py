@@ -242,22 +242,17 @@ def find_parent_node(
         {% macro sparql_query(class_names, graph_uri) %}
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX owl: <http://www.w3.org/2002/07/owl#>
-
             SELECT ?parentClass
             WHERE {
                 GRAPH <{{ graph_uri }}> {
-                    # Subclass traversal to find parent classes
                     ?class rdfs:subClassOf* ?parentClass .
                     FILTER(
                         {% for class_name in class_names -%}
                             ?class = <{{ class_name }}>{{ " ||" if not loop.last }}
-                        {% endfor %}
-                    )
+                        {% endfor %})
                 }
             }
         {% endmacro %}
-
         """
 
         template = Template(template_str)
