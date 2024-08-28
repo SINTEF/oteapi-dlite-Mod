@@ -240,31 +240,24 @@ def find_parent_node(
     try:
         template_str = """
         {% macro sparql_query(class_names, graph_uri) %}
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
 
-        SELECT ?parentClass
-        WHERE {
-            GRAPH <{{ graph_uri }}> {
-                {
-                # Subclass traversal to find parent classes
-                ?class rdfs:subClassOf* ?parentClass .
-                FILTER(
-                    {% for class_name in class_names -%}
-                        ?class = <{{ class_name }}>{{ " ||" if not loop.last }}
-                    {% endfor %}
-                )
-                }
-            UNION
-                {
-                # Explicitly include owl:Thing as a parent class
-                VALUES ?class { {% for class_name in class_names -%} <{{ class_name }}> {% endfor %} }
-                BIND(owl:Thing AS ?parentClass)
+            SELECT ?parentClass
+            WHERE {
+                GRAPH <{{ graph_uri }}> {
+                    # Subclass traversal to find parent classes
+                    ?class rdfs:subClassOf* ?parentClass .
+                    FILTER(
+                        {% for class_name in class_names -%}
+                            ?class = <{{ class_name }}>{{ " ||" if not loop.last }}
+                        {% endfor %}
+                    )
                 }
             }
-        }
         {% endmacro %}
+
         """
 
         template = Template(template_str)
