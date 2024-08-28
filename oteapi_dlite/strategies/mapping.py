@@ -364,6 +364,7 @@ def fetch_and_populate_graph(
 
             # Filter by the specific predicates
             FILTER (?predicate IN (
+                rdfs:subClassOf,
                 rdfs:label,
                 rdf:type,
                 rdf:about,
